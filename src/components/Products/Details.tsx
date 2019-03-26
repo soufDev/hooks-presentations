@@ -12,20 +12,30 @@ const initialValue: Props = {
   price: 0,
   product_id: '',
 }
+export default class Detail extends React.Component<{id: string}> {
+  state = {
+    detail: initialValue,
+  }
+  componentDidMount() {
+    fetchProductDetails(this.props.id)
+      .then(result => this.setState({ detail: result }));
+  }
 
-export default function Detail(props: { id: string }) {
-  const [detail, setDetail] = useState<Props>(initialValue);
-  useEffect(() => {
-    fetchProductDetails(props.id).then(result => setDetail(result))
-    return () => fetchProductDetailsAbort();
-  }, [])
-  return (
-    <>
-      <h1>{detail.name}</h1>
-      <img src={detail.image} alt={detail.name}/>
-      <h3>Price: {detail.price}$</h3>
-      <hr/>
-      <h4>{detail.description}</h4>
-    </>
-  )
+  componentWillUnmount() {
+    fetchProductDetailsAbort();
+  }
+
+  render() {
+    const { detail } = this.state;
+    return (
+      <>
+        <h1>{detail.name}</h1>
+        <img src={detail.image} alt={detail.name}/>
+        <h3>Price: {detail.price}$</h3>
+        <hr/>
+        <h4>{detail.description}</h4>
+      </>
+
+    )
+  }
 }

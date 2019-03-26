@@ -8,25 +8,28 @@ interface Props {
   onClose: () => void;
 }
 
-const initialValue = 'auto';
-export default function Modal(props: Props) {
-  useEffect(() => {
+export default class Modal extends React.PureComponent<Props> {
+  componentDidMount() {
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = initialValue;
-    }
-  })
-  return (
-    <div id="myModal" className="modal" style={props.open && { display: 'block' } || { display: 'none' }}>
-      <div className="modal-content">
-        <div className="modal-header">
-          <span className="close" onClick={props.onClose}>&times;</span>
-          <h2>{props.title}</h2>
-        </div>
-        <div className="modal-body">
-          {props.content}    
+  }
+
+  componentWillUnmount() {
+    document.body.style.overflow = 'auto';
+  }
+
+  render() {
+    return (
+      <div id="myModal" className="modal" style={this.props.open && { display: 'block' } || { display: 'none' }}>
+        <div className="modal-content">
+          <div className="modal-header">
+            <span className="close" onClick={this.props.onClose}>&times;</span>
+            <h2>{this.props.title}</h2>
+          </div>
+          <div className="modal-body">
+            {this.props.content}    
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
