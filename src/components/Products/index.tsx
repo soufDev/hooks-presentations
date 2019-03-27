@@ -17,66 +17,60 @@ interface ActionReducer {
   type: string;
   content?: JSX.Element;
 }
+interface State {
+  products: Array<ProductProps>;
+  isOpen: boolean;
+  content: JSX.Element;
+}
 
 const initialState: StateReducer = { 
   open: false,
   content: <></>,
 }
 
-function reducer(state: StateReducer, action: ActionReducer) {
-  switch (action.type) {
-    case 'OPEN_MODAL': 
-    return {
-        ...state,
-        open: true,
-        content: action.content,
-      };
-    case 'CLOSE_MODAL':
-    return {
-        ...state,
-        ...initialState
-      }
-    default:
-      return state;
+export default class Products extends React.Component<RouteComponentProps, Partial<State>> {
+  state = {
+    products: [],
+    isOpen: false,
+    content: <></>,
   }
-}
 
-function useProducts() {
-  const [products, setProducts] = useState<ProductProps[]>([]);
-  useEffect(() => {
-    fetchProductList('/list').then(results => setProducts(results));
-    return () => fetchProductListAbort();
-  }, []);
-  return products;
-}
+  componentDidMount() {
+    fetchProductList('/list')
+      .then(results => this.setState({ products: results }))
+  }
 
-export default function Pruducts(props: RouteComponentProps) {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const products = useProducts();
-  const handleClickProduct = (id: string) => () => {
+  componentWillUnmount() {
+    fetchProductListAbort();
+  }
+
+  showProductDetail = (id: string) => () => {
     if (window.innerWidth > 1007) {
-      dispatch({ type: 'OPEN_MODAL', content: <Detail id={id}  />})
+      this.setState({ isOpen: true, content: <Detail id={id} />})
     } else {
-      props.history.push('/product/'+id);
+      this.props.history.push('/product/'+id);
     }
   }
 
-  function handleClose() {
-    dispatch({ type: 'CLOSE_MODAL'})
+  onCloseModal = () => {
+    this.setState({ isOpen: false });
   }
 
-  return (
-    <Suspense fallback={<Loader />}>
-      {products && products.map((product, index) =>
-        <Product
-          {...product}
-          key={index}
-          onClick={handleClickProduct(product.product_id)}
-        />
-      )}
-      {state.open &&
-        <Modal title='Product Description' open={state.open} content={state.content} onClose={handleClose}/>
-      }
-    </Suspense> 
-  )
+  render() {
+    const { products, isOpen, content } = this.state
+    return (
+      <Suspense fallback={<Loader />}>
+        {products && products.map((product: ProductProps, index: number) =>
+          <Product
+            {...product}
+            key={index}
+            onClick={this.showProductDetail(product.product_id)}
+          />
+        )}
+        {isOpen &&
+          <Modal title='Product Description' open={isOpen} content={content} onClose={this.onCloseModal}/>
+        }
+      </Suspense> 
+    )
+  }
 }
